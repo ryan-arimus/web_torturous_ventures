@@ -1,2 +1,7 @@
 # web_torturous_ventures
-Web Torturous Ventures
+
+A collection of websites.
+
+## Sites
+
+- **srupicks** — `sites/srupicks/`

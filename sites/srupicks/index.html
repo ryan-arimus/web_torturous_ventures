@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRU Picks</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #000000;
+            --white: #ffffff;
+            --gray: #888888;
+            --accent: #ffffff;
+            --error: #ff4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--white);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ── Intro Screens ── */
+        .intro-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .intro-screen .text {
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        /* ── Video Screen ── */
+        #video-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-video {
+            max-height: 85vh;
+            max-width: 90vw;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+
+        /* ── Landing Page ── */
+        #landing {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 80;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+
+        #landing > :first-child {
+            margin-top: auto;
+        }
+
+        #landing > :last-child {
+            margin-bottom: auto;
+        }
+
+        .landing-title {
+            max-width: 95vw;
+            max-height: 40vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .landing-title {
+                max-width: 60vw;
+                max-height: 40vh;
+            }
+        }
+
+        .landing-subtitle {
+            font-size: clamp(0.75rem, 1.5vw, 1rem);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            flex-shrink: 0;
+        }
+
+        .waitlist-box {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            flex-shrink: 0;
+        }
+
+        .waitlist-label {
+            font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+            font-weight: 500;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 0.6rem;
+        }
+
+        .waitlist-counter {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 200;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.05em;
+        }
+
+        .waitlist-counter span {
+            display: inline-block;
+            min-width: 0.65em;
+            text-align: center;
+        }
+
+        /* ── Shared button style ── */
+        .btn {
+            position: relative;
+            display: inline-block;
+            padding: 1rem 3rem;
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(0.85rem, 1.4vw, 1rem);
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--bg);
+            background: var(--white);
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(255,255,255,0.15), 0 0 80px rgba(255,255,255,0.05);
+        }
+
+        .btn:hover::before { transform: translateX(100%); }
+        .btn:active { transform: translateY(0px); }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn:disabled::before { display: none; }
+
+        .join-btn {
+            opacity: 0;
+            transform: translateY(20px);
+            flex-shrink: 0;
+        }
+
+        /* ── Signup Flow Screens ── */
+        .signup-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 85;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .signup-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .signup-heading {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .signup-subtext {
+            font-size: clamp(0.8rem, 1.4vw, 1rem);
+            color: var(--gray);
+            margin-bottom: 2.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+            width: 100%;
+            max-width: 380px;
+            padding: 0 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--white);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 0;
+            outline: none;
+            transition: border-color 0.3s ease, background 0.3s ease;
+            letter-spacing: 0.02em;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .input-field:focus {
+            border-color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .input-field.error {
+            border-color: var(--error);
+        }
+
+        .error-msg {
+            font-size: 0.8rem;
+            color: var(--error);
+            min-height: 1.2em;
+            margin-top: -0.5rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .code-inputs {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+        }
+
+        .code-digit {
+            width: 3.2rem;
+            height: 4rem;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--white);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 0;
+            outline: none;
+            transition: border-color 0.3s ease, background 0.3s ease;
+        }
+
+        .code-digit:focus {
+            border-color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .code-digit.error {
+            border-color: var(--error);
+        }
+
+        /* ── Congrats Screen ── */
+        #step-congrats {
+            overflow: hidden;
+        }
+
+        .congrats-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .congrats-badge {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            margin-bottom: 1.8rem;
+            opacity: 0;
+            transform: scale(0);
+            box-shadow: 0 0 0 0 rgba(255,215,0,0), 0 0 60px rgba(255,215,0,0);
+        }
+
+        .congrats-badge.animate {
+            animation: badgePop 0.7s cubic-bezier(0.16,1,0.3,1) forwards,
+                       badgeGlow 2s ease-in-out 0.7s infinite alternate;
+        }
+
+        @keyframes badgePop {
+            0% { opacity: 0; transform: scale(0) rotate(-30deg); }
+            60% { transform: scale(1.15) rotate(5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes badgeGlow {
+            0% { box-shadow: 0 0 20px rgba(255,215,0,0.3), 0 0 60px rgba(255,215,0,0.1); }
+            100% { box-shadow: 0 0 40px rgba(255,215,0,0.5), 0 0 100px rgba(255,215,0,0.2); }
+        }
+
+        .congrats-youre-in {
+            font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+            font-weight: 600;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        .congrats-heading {
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            font-weight: 900;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ffffff 0%, #ffd700 50%, #ffffff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .congrats-heading.animate {
+            animation: shimmerText 3s linear infinite;
+        }
+
+        @keyframes shimmerText {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+
+        .congrats-subtext {
+            font-size: clamp(0.85rem, 1.5vw, 1.05rem);
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            max-width: 360px;
+            line-height: 1.7;
+            letter-spacing: 0.01em;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        .congrats-divider {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.5), transparent);
+            margin: 1.8rem 0;
+            opacity: 0;
+        }
+
+        .congrats-slot {
+            padding: 1.2rem 2.5rem;
+            border: 1px solid rgba(255,215,0,0.25);
+            text-align: center;
+            position: relative;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        .congrats-slot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent);
+        }
+
+        .congrats-slot-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255,215,0,0.7);
+            margin-bottom: 0.4rem;
+        }
+
+        .congrats-slot-number {
+            font-size: 2.5rem;
+            font-weight: 200;
+            font-variant-numeric: tabular-nums;
+            color: var(--white);
+        }
+
+        .congrats-elite {
+            margin-top: 1.5rem;
+            font-size: clamp(0.7rem, 1.1vw, 0.8rem);
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* ── Confetti canvas ── */
+        #confetti {
+            position: fixed;
+            inset: 0;
+            z-index: 86;
+            pointer-events: none;
+        }
+
+        /* ── Ring burst ── */
+        .ring-burst {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,215,0,0.4);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ring-burst.animate {
+            animation: ringExpand 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        .ring-burst:nth-child(2) { animation-delay: 0.15s; border-color: rgba(255,215,0,0.2); }
+        .ring-burst:nth-child(3) { animation-delay: 0.3s; border-color: rgba(255,255,255,0.15); }
+
+        @keyframes ringExpand {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+        }
+
+        /* ── Noise overlay ── */
+        #landing::after,
+        .signup-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ── Particle canvas ── */
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 81;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* ── Video transition overlay ── */
+        #video-transition {
+            position: fixed;
+            inset: 0;
+            z-index: 95;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ── Back arrow ── */
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.3s ease;
+            padding: 0.5rem;
+        }
+        .back-btn:hover { color: var(--white); }
+
+        /* ── Early adopter text ── */
+        .early-adopter-text {
+            margin-top: 1.2rem;
+            flex-shrink: 0;
+            font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+            color: var(--gray);
+            text-align: center;
+            max-width: 380px;
+            line-height: 1.6;
+            padding: 0 1.5rem;
+        }
+
+        .info-icon {
+            display: inline-block;
+            cursor: pointer;
+            color: var(--gray);
+            font-size: 1rem;
+            vertical-align: middle;
+            margin-left: 0.3rem;
+            transition: color 0.3s ease;
+        }
+        .info-icon:hover { color: var(--white); }
+
+        /* ── Info popup ── */
+        .info-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .info-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .info-popup {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 2.5rem 2rem 2rem;
+            max-width: 380px;
+            width: 90%;
+            position: relative;
+        }
+
+        .info-close {
+            position: absolute;
+            top: 0.8rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .info-close:hover { color: var(--white); }
+
+        .info-popup-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.02em;
+        }
+
+        .info-perks {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-perks li {
+            padding: 0.6rem 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.5;
+        }
+        .info-perks li::before {
+            content: '\2713\00a0\00a0';
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Phase 1: "Introducing" -->
+    <div class="intro-screen" id="screen-1">
+        <div class="text">Introducing</div>
+    </div>
+
+    <!-- Phase 2: Logo animation video -->
+    <div id="logo-screen" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;z-index:100;background:var(--bg);opacity:0;pointer-events:none;padding:1rem;">
+        <div style="display:flex;flex-direction:column;align-items:center;flex:0 1 auto;max-height:30vh;">
+            <span id="brought-to-you" style="font-size:clamp(0.65rem,1.2vw,0.85rem);font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:0.8rem;opacity:0;transition:opacity 1.5s ease;">brought to you by</span>
+            <img id="logo-words" src="/assets/stick_reaper_words.jpg" style="max-width:100%;max-height:22vh;object-fit:contain;width:100%;opacity:0;transition:opacity 2s ease;">
+        </div>
+        <video id="logo-video" muted playsinline preload="auto" style="flex:1 1 auto;min-height:0;max-width:100%;object-fit:contain;width:100%;">
+            <source src="/assets/video1.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Phase 3: Video -->
+    <div id="video-screen">
+        <video id="intro-video" muted playsinline preload="auto">
+            <source src="/assets/video2_fixed.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Transition overlay -->
+    <div id="video-transition"></div>
+
+    <!-- Particles -->
+    <canvas id="particles"></canvas>
+
+    <!-- Phase 4: Landing -->
+    <div id="landing">
+        <img class="landing-title" src="/assets/sru_picks_logo.jpg" alt="SRU Picks">
+        <div class="landing-subtitle">The future of sports picks</div>
+        <div class="waitlist-box">
+            <div class="waitlist-label">Whitelist spots remaining</div>
+            <div class="waitlist-counter" id="counter">1,247</div>
+        </div>
+        <button class="btn join-btn" id="join-btn">Join the Waitlist</button>
+        <div class="early-adopter-text" style="opacity:0;transform:translateY(20px);">
+            Reserve your spot as an SRU Picks early adopter to receive exclusive membership and perks
+            <span class="info-icon" id="info-icon">&#9432;</span>
+        </div>
+    </div>
+
+    <!-- Info popup -->
+    <div class="info-overlay" id="info-overlay">
+        <div class="info-popup">
+            <button class="info-close" id="info-close">&times;</button>
+            <div class="info-popup-title">Early Adopter Perks</div>
+            <ul class="info-perks">
+                <li>Claim SRU Picks early adopter price for LIFE</li>
+                <li>Exclusive access to the Early Adopters Club</li>
+                <li>Access to the free merch giveaway</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Step 1: Email -->
+    <div class="signup-screen" id="step-email">
+        <button class="back-btn" id="back-to-landing">&larr;</button>
+        <div class="signup-heading">Enter your email</div>
+        <div class="signup-subtext">We'll use this to reserve your spot.</div>
+        <div class="input-group">
+            <input class="input-field" id="email-input" type="email" placeholder="you@example.com" autocomplete="email">
+            <div class="error-msg" id="email-error">&nbsp;</div>
+            <button class="btn" id="email-continue-btn">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Name -->
+    <div class="signup-screen" id="step-name">
+        <button class="back-btn" id="back-to-email-from-name">&larr;</button>
+        <div class="signup-heading">What's your name?</div>
+        <div class="signup-subtext">So we know who to save the spot for.</div>
+        <div class="input-group">
+            <input class="input-field" id="name-input" type="text" placeholder="First and last name" autocomplete="name">
+            <div class="error-msg" id="name-error">&nbsp;</div>
+            <button class="btn" id="name-continue-btn">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Phone -->
+    <div class="signup-screen" id="step-phone">
+        <button class="back-btn" id="back-to-name">&larr;</button>
+        <div class="signup-heading">Enter your phone number</div>
+        <div class="signup-subtext">We'll send you a verification code.</div>
+        <div class="input-group">
+            <input class="input-field" id="phone-input" type="tel" placeholder="(555) 123-4567" autocomplete="tel">
+            <div class="error-msg" id="phone-error">&nbsp;</div>
+            <button class="btn" id="phone-send-btn">Send Code</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Verify Code -->
+    <div class="signup-screen" id="step-code">
+        <button class="back-btn" id="back-to-phone">&larr;</button>
+        <div class="signup-heading">Enter verification code</div>
+        <div class="signup-subtext" id="code-subtext">Sent to your phone.</div>
+        <div class="input-group">
+            <div class="code-inputs" id="code-inputs">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+                <input class="code-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <div class="error-msg" id="code-error">&nbsp;</div>
+            <button class="btn" id="code-verify-btn" disabled>Verify</button>
+        </div>
+    </div>
+
+    <!-- Step 4: Congrats -->
+    <div class="signup-screen" id="step-congrats">
+        <div class="ring-burst"></div>
+        <div class="ring-burst"></div>
+        <div class="ring-burst"></div>
+        <canvas id="confetti"></canvas>
+        <div class="congrats-content">
+            <div class="congrats-badge" id="congrats-badge"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 5-4-7-4 7-6-5z"/><path d="M5 16h14v2H5z"/></svg></div>
+            <div class="congrats-youre-in" id="congrats-youre-in">You're in</div>
+            <div class="congrats-heading" id="congrats-heading">Congratulations</div>
+            <div class="congrats-subtext" id="congrats-subtext">Your exclusive spot has been reserved. We'll alert you when registration opens, and you'll have <strong style="color:#ffd700;">48 hours</strong> to claim your spot.</div>
+            <div class="congrats-divider" id="congrats-divider"></div>
+            <div class="congrats-slot" id="congrats-slot">
+                <div class="congrats-slot-label">Your whitelist position</div>
+                <div class="congrats-slot-number" id="slot-number">#—</div>
+            </div>
+            <div class="congrats-elite" id="congrats-elite">Welcome to the inner circle</div>
+        </div>
+    </div>
+
+    <script>
+        // ── Utility ──
+        function fadeIn(el, duration = 600) {
+            return new Promise(resolve => {
+                el.style.transition = `opacity ${duration}ms ease`;
+                el.style.opacity = '1';
+                el.style.pointerEvents = 'auto';
+                setTimeout(resolve, duration);
+            });
+        }
+
+        function fadeOut(el, duration = 600) {
+            return new Promise(resolve => {
+                el.style.transition = `opacity ${duration}ms ease`;
+                el.style.opacity = '0';
+                el.style.pointerEvents = 'none';
+                setTimeout(resolve, duration);
+            });
+        }
+
+        function animateTextIn(textEl, duration = 800) {
+            return new Promise(resolve => {
+                textEl.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
+                textEl.style.opacity = '1';
+                textEl.style.transform = 'translateY(0)';
+                setTimeout(resolve, duration);
+            });
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showScreen(screen) {
+            screen.classList.add('active');
+        }
+
+        function hideScreen(screen) {
+            screen.classList.remove('active');
+        }
+
+        // ── Particles ──
+        const particleCanvas = document.getElementById('particles');
+        const pCtx = particleCanvas.getContext('2d');
+        let particles = [];
+        let particlesActive = false;
+
+        function resizeParticles() {
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+        }
+        resizeParticles();
+        window.addEventListener('resize', resizeParticles);
+
+        function spawnParticles(count = 60) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * particleCanvas.width,
+                    y: Math.random() * particleCanvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: -Math.random() * 0.5 - 0.1,
+                    size: Math.random() * 2 + 0.5,
+                    alpha: Math.random() * 0.3 + 0.05,
+                    life: 1
+                });
+            }
+        }
+
+        function drawParticles() {
+            if (!particlesActive) return;
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            for (const p of particles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.y < -10) p.y = particleCanvas.height + 10;
+                if (p.x < -10) p.x = particleCanvas.width + 10;
+                if (p.x > particleCanvas.width + 10) p.x = -10;
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                pCtx.fillStyle = `rgba(255,255,255,${p.alpha})`;
+                pCtx.fill();
+            }
+            requestAnimationFrame(drawParticles);
+        }
+
+        // ── Waitlist Counter ──
+        let counterValue = 1247;
+        const counterEl = document.getElementById('counter');
+
+        function formatNumber(n) {
+            return n.toLocaleString();
+        }
+
+        function startCounter() {
+            const tick = () => {
+                const delay = Math.random() * 4000 + 2000;
+                setTimeout(() => {
+                    if (counterValue > 0) {
+                        counterValue -= Math.floor(Math.random() * 3) + 1;
+                        if (counterValue < 0) counterValue = 0;
+                        counterEl.textContent = formatNumber(counterValue);
+                    }
+                    tick();
+                }, delay);
+            };
+            tick();
+        }
+
+        // ── Staggered landing elements ──
+        function revealLanding() {
+            return new Promise(async resolve => {
+                const title = document.querySelector('.landing-title');
+                const subtitle = document.querySelector('.landing-subtitle');
+                const waitlistBox = document.querySelector('.waitlist-box');
+                const joinBtn = document.getElementById('join-btn');
+                const earlyAdopterText = document.querySelector('.early-adopter-text');
+
+                const stagger = (el, delay, dur = 900) => {
+                    return new Promise(r => {
+                        setTimeout(() => {
+                            el.style.transition = `opacity ${dur}ms cubic-bezier(0.16,1,0.3,1), transform ${dur}ms cubic-bezier(0.16,1,0.3,1)`;
+                            el.style.opacity = '1';
+                            el.style.transform = 'translateY(0) scale(1)';
+                            setTimeout(r, dur);
+                        }, delay);
+                    });
+                };
+
+                stagger(title, 0, 1000);
+                stagger(subtitle, 300, 900);
+                stagger(waitlistBox, 600, 900);
+                stagger(joinBtn, 900, 900);
+                await stagger(earlyAdopterText, 1100, 900);
+                resolve();
+            });
+        }
+
+        // ── Validation ──
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function formatPhone(value) {
+            const digits = value.replace(/\D/g, '');
+            if (digits.length === 0) return '';
+            if (digits.length <= 3) return `(${digits}`;
+            if (digits.length <= 6) return `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+            return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6,10)}`;
+        }
+
+        function isValidPhone(value) {
+            return value.replace(/\D/g, '').length >= 10;
+        }
+
+        // ── Signup flow ──
+        const stepEmail = document.getElementById('step-email');
+        const stepName = document.getElementById('step-name');
+        const stepPhone = document.getElementById('step-phone');
+        const stepCode = document.getElementById('step-code');
+        const stepCongrats = document.getElementById('step-congrats');
+        const landing = document.getElementById('landing');
+
+        const emailInput = document.getElementById('email-input');
+        const emailError = document.getElementById('email-error');
+        const emailBtn = document.getElementById('email-continue-btn');
+
+        const nameInput = document.getElementById('name-input');
+        const nameError = document.getElementById('name-error');
+        const nameBtn = document.getElementById('name-continue-btn');
+
+        const phoneInput = document.getElementById('phone-input');
+        const phoneError = document.getElementById('phone-error');
+        const phoneBtn = document.getElementById('phone-send-btn');
+
+        const codeDigits = document.querySelectorAll('.code-digit');
+        const codeError = document.getElementById('code-error');
+        const codeVerifyBtn = document.getElementById('code-verify-btn');
+        const codeSubtext = document.getElementById('code-subtext');
+
+        let generatedCode = '';
+
+        // ── Info popup ──
+        document.getElementById('info-icon').addEventListener('click', () => {
+            document.getElementById('info-overlay').classList.add('visible');
+        });
+        document.getElementById('info-close').addEventListener('click', () => {
+            document.getElementById('info-overlay').classList.remove('visible');
+        });
+        document.getElementById('info-overlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.currentTarget.classList.remove('visible');
+            }
+        });
+
+        // Join button → Email step
+        document.getElementById('join-btn').addEventListener('click', () => {
+            hideScreen(landing);
+            landing.style.opacity = '0';
+            landing.style.pointerEvents = 'none';
+            showScreen(stepEmail);
+            setTimeout(() => emailInput.focus(), 400);
+        });
+
+        // Back: Email → Landing
+        document.getElementById('back-to-landing').addEventListener('click', () => {
+            hideScreen(stepEmail);
+            landing.style.opacity = '1';
+            landing.style.pointerEvents = 'auto';
+            showScreen(landing);
+        });
+
+        // Email continue → Name
+        emailBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            if (!isValidEmail(email)) {
+                emailError.textContent = 'Please enter a valid email address.';
+                emailInput.classList.add('error');
+                return;
+            }
+            emailError.innerHTML = '&nbsp;';
+            emailInput.classList.remove('error');
+            hideScreen(stepEmail);
+            showScreen(stepName);
+            setTimeout(() => nameInput.focus(), 400);
+        });
+
+        emailInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') emailBtn.click();
+        });
+
+        emailInput.addEventListener('input', () => {
+            emailError.innerHTML = '&nbsp;';
+            emailInput.classList.remove('error');
+        });
+
+        // Back: Name → Email
+        document.getElementById('back-to-email-from-name').addEventListener('click', () => {
+            hideScreen(stepName);
+            showScreen(stepEmail);
+            setTimeout(() => emailInput.focus(), 400);
+        });
+
+        // Name continue → Phone
+        nameBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            if (name.length < 2) {
+                nameError.textContent = 'Please enter your name.';
+                nameInput.classList.add('error');
+                return;
+            }
+            nameError.innerHTML = '&nbsp;';
+            nameInput.classList.remove('error');
+            hideScreen(stepName);
+            showScreen(stepPhone);
+            setTimeout(() => phoneInput.focus(), 400);
+        });
+
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') nameBtn.click();
+        });
+
+        nameInput.addEventListener('input', () => {
+            nameError.innerHTML = '&nbsp;';
+            nameInput.classList.remove('error');
+        });
+
+        // Back: Phone → Name
+        document.getElementById('back-to-name').addEventListener('click', () => {
+            hideScreen(stepPhone);
+            showScreen(stepName);
+            setTimeout(() => nameInput.focus(), 400);
+        });
+
+        // Phone formatting
+        phoneInput.addEventListener('input', () => {
+            const cursorPos = phoneInput.selectionStart;
+            const oldLen = phoneInput.value.length;
+            phoneInput.value = formatPhone(phoneInput.value);
+            const newLen = phoneInput.value.length;
+            phoneInput.setSelectionRange(cursorPos + (newLen - oldLen), cursorPos + (newLen - oldLen));
+            phoneError.innerHTML = '&nbsp;';
+            phoneInput.classList.remove('error');
+        });
+
+        phoneInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') phoneBtn.click();
+        });
+
+        // Send code
+        phoneBtn.addEventListener('click', () => {
+            if (!isValidPhone(phoneInput.value)) {
+                phoneError.textContent = 'Please enter a valid 10-digit phone number.';
+                phoneInput.classList.add('error');
+                return;
+            }
+            phoneError.innerHTML = '&nbsp;';
+            phoneInput.classList.remove('error');
+
+            // Generate a 6-digit code
+            generatedCode = String(Math.floor(100000 + Math.random() * 900000));
+            console.log('Verification code:', generatedCode);
+
+            const masked = phoneInput.value.replace(/\d(?=\d{4})/g, '*');
+            codeSubtext.textContent = `Code sent to ${phoneInput.value}`;
+
+            hideScreen(stepPhone);
+            showScreen(stepCode);
+            setTimeout(() => codeDigits[0].focus(), 400);
+        });
+
+        // Back: Code → Phone
+        document.getElementById('back-to-phone').addEventListener('click', () => {
+            hideScreen(stepCode);
+            codeDigits.forEach(d => { d.value = ''; d.classList.remove('error'); });
+            codeError.innerHTML = '&nbsp;';
+            codeVerifyBtn.disabled = true;
+            showScreen(stepPhone);
+            setTimeout(() => phoneInput.focus(), 400);
+        });
+
+        // Code digit inputs — auto-advance, backspace, paste
+        codeDigits.forEach((digit, i) => {
+            digit.addEventListener('input', (e) => {
+                digit.value = digit.value.replace(/\D/g, '').slice(0, 1);
+                digit.classList.remove('error');
+                codeError.innerHTML = '&nbsp;';
+                if (digit.value && i < codeDigits.length - 1) {
+                    codeDigits[i + 1].focus();
+                }
+                updateVerifyBtn();
+            });
+
+            digit.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !digit.value && i > 0) {
+                    codeDigits[i - 1].focus();
+                }
+                if (e.key === 'Enter') codeVerifyBtn.click();
+            });
+
+            digit.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+                pasted.split('').forEach((ch, j) => {
+                    if (codeDigits[j]) codeDigits[j].value = ch;
+                });
+                if (pasted.length > 0) codeDigits[Math.min(pasted.length, 5)].focus();
+                updateVerifyBtn();
+            });
+        });
+
+        function updateVerifyBtn() {
+            const filled = Array.from(codeDigits).every(d => d.value.length === 1);
+            codeVerifyBtn.disabled = !filled;
+        }
+
+        // Verify code
+        codeVerifyBtn.addEventListener('click', () => {
+            const entered = Array.from(codeDigits).map(d => d.value).join('');
+            // Accept any code for now
+            // Success
+            hideScreen(stepCode);
+            document.getElementById('slot-number').textContent = `#${counterValue}`;
+            showScreen(stepCongrats);
+            launchCongrats();
+        });
+
+        // ── Congrats celebration ──
+        function launchCongrats() {
+            // Confetti
+            const confettiCanvas = document.getElementById('confetti');
+            const cCtx = confettiCanvas.getContext('2d');
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+
+            const confettiPieces = [];
+            const colors = ['#ffd700','#ffaa00','#ff6b6b','#ffffff','#6bffb8','#6bb5ff','#ff6bff','#ffd700'];
+
+            for (let i = 0; i < 150; i++) {
+                confettiPieces.push({
+                    x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 100,
+                    y: confettiCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: -Math.random() * 22 - 5,
+                    w: Math.random() * 10 + 4,
+                    h: Math.random() * 6 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 15,
+                    gravity: 0.35 + Math.random() * 0.15,
+                    opacity: 1,
+                    decay: 0.002 + Math.random() * 0.003
+                });
+            }
+
+            function drawConfetti() {
+                cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                let alive = false;
+                for (const c of confettiPieces) {
+                    if (c.opacity <= 0) continue;
+                    alive = true;
+                    c.vy += c.gravity;
+                    c.vx *= 0.99;
+                    c.x += c.vx;
+                    c.y += c.vy;
+                    c.rotation += c.rotSpeed;
+                    if (c.y > confettiCanvas.height * 0.7) c.opacity -= c.decay * 3;
+                    cCtx.save();
+                    cCtx.translate(c.x, c.y);
+                    cCtx.rotate(c.rotation * Math.PI / 180);
+                    cCtx.globalAlpha = Math.max(0, c.opacity);
+                    cCtx.fillStyle = c.color;
+                    cCtx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+                    cCtx.restore();
+                }
+                if (alive) requestAnimationFrame(drawConfetti);
+            }
+            drawConfetti();
+
+            // Stagger in the elements
+            const badge = document.getElementById('congrats-badge');
+            const youreIn = document.getElementById('congrats-youre-in');
+            const heading = document.getElementById('congrats-heading');
+            const subtext = document.getElementById('congrats-subtext');
+            const divider = document.getElementById('congrats-divider');
+            const slot = document.getElementById('congrats-slot');
+            const elite = document.getElementById('congrats-elite');
+            const rings = document.querySelectorAll('.ring-burst');
+
+            // Rings burst
+            rings.forEach(r => r.classList.add('animate'));
+
+            // Badge pop
+            setTimeout(() => badge.classList.add('animate'), 200);
+
+            // Stagger text
+            const reveal = (el, delay) => {
+                setTimeout(() => {
+                    el.style.transition = 'opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1)';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                    if (el === heading) el.classList.add('animate');
+                }, delay);
+            };
+
+            reveal(youreIn, 500);
+            reveal(heading, 700);
+            reveal(subtext, 1000);
+
+            setTimeout(() => {
+                divider.style.transition = 'opacity 0.8s ease, width 0.8s ease';
+                divider.style.opacity = '1';
+                divider.style.width = '60px';
+            }, 1200);
+
+            reveal(slot, 1400);
+
+            // Animate the slot number counting up
+            setTimeout(() => {
+                const target = counterValue;
+                const slotEl = document.getElementById('slot-number');
+                let current = 0;
+                const step = Math.max(1, Math.floor(target / 40));
+                const interval = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(interval);
+                    }
+                    slotEl.textContent = `#${current.toLocaleString()}`;
+                }, 30);
+            }, 1500);
+
+            reveal(elite, 1900);
+
+            // Second confetti burst
+            setTimeout(() => {
+                for (let i = 0; i < 80; i++) {
+                    confettiPieces.push({
+                        x: Math.random() * confettiCanvas.width,
+                        y: -20,
+                        vx: (Math.random() - 0.5) * 6,
+                        vy: Math.random() * 4 + 2,
+                        w: Math.random() * 8 + 3,
+                        h: Math.random() * 5 + 2,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * 360,
+                        rotSpeed: (Math.random() - 0.5) * 10,
+                        gravity: 0.2 + Math.random() * 0.1,
+                        opacity: 1,
+                        decay: 0.003
+                    });
+                }
+                drawConfetti();
+            }, 1200);
+        }
+
+        // ── Main Sequence ──
+        async function run() {
+            const screen1 = document.getElementById('screen-1');
+            const text1 = screen1.querySelector('.text');
+            const logoScreen = document.getElementById('logo-screen');
+            const logoVideo = document.getElementById('logo-video');
+            const videoScreen = document.getElementById('video-screen');
+            const video = document.getElementById('intro-video');
+            const videoTransition = document.getElementById('video-transition');
+
+            // Phase 1: "Introducing"
+            await wait(400);
+            await fadeIn(screen1, 100);
+            await animateTextIn(text1, 1200);
+            await wait(1200);
+            await fadeOut(screen1, 800);
+
+            // Phase 2: Logo animation video
+            await wait(300);
+            await fadeIn(logoScreen, 400);
+            document.getElementById('brought-to-you').style.opacity = '1';
+            await wait(800);
+            document.getElementById('logo-words').style.opacity = '1';
+            logoVideo.play();
+            await new Promise(resolve => {
+                logoVideo.addEventListener('ended', resolve, { once: true });
+            });
+            await fadeOut(logoScreen, 600);
+
+            // Phase 3: Play video
+            await wait(200);
+            await fadeIn(videoScreen, 600);
+            video.playbackRate = 2.0;
+            video.play();
+
+            await new Promise(resolve => {
+                video.addEventListener('ended', resolve, { once: true });
+            });
+
+            // Phase 4: Transition — flash white, video scales out, landing reveals
+            videoTransition.style.background = 'white';
+            videoTransition.style.transition = 'opacity 150ms ease';
+            videoTransition.style.opacity = '1';
+            await wait(150);
+
+            videoScreen.style.opacity = '0';
+            videoScreen.style.pointerEvents = 'none';
+            landing.style.opacity = '1';
+            landing.style.pointerEvents = 'auto';
+
+            videoTransition.style.transition = 'opacity 800ms ease';
+            videoTransition.style.opacity = '0';
+
+            particlesActive = true;
+            spawnParticles(50);
+            particleCanvas.style.transition = 'opacity 2000ms ease';
+            particleCanvas.style.opacity = '1';
+            drawParticles();
+
+            await wait(200);
+            await revealLanding();
+            startCounter();
+        }
+
+        run();
+    </script>
+</body>
+</html>
